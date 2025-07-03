@@ -1,3 +1,82 @@
+    - name: deploy
+      taskRef:
+        name: deploy
+      params:
+        - name: IMAGE
+          value: $(params.build-image)
+        - name: NAMESPACE
+          value: $(params.app-name)
+      runAfter:
+        - buildah
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: counter-cd-pipeline
+spec:
+  workspaces:
+    - name: output
+  params:
+    - name: repo-url
+      type: string
+    - name: app-name
+      type: string
+    - name: build-image
+      type: string
+  tasks:
+    - name: cleanup
+      taskRef:
+        name: cleanup
+      workspaces:
+        - name: source
+          workspace: output
+    - name: git-clone
+      taskRef:
+        name: git-clone
+      params:
+        - name: url
+          value: $(params.repo-url)
+      workspaces:
+        - name: output
+          workspace: output
+      runAfter:
+        - cleanup
+    - name: lint
+      taskRef:
+        name: lint
+      workspaces:
+        - name: source
+          workspace: output
+      runAfter:
+        - git-clone
+    - name: test
+      taskRef:
+        name: nose
+      workspaces:
+        - name: source
+          workspace: output
+      runAfter:
+        - lint
+    - name: buildah
+      taskRef:
+        name: buildah
+      params:
+        - name: IMAGE
+          value: $(params.build-image)
+      workspaces:
+        - name: source
+          workspace: output
+      runAfter:
+        - test
+    - name: deploy
+      taskRef:
+        name: deploy
+      params:
+        - name: app-name
+          value: $(params.app-name)
+        - name: build-image
+          value: $(params.build-image)
+      runAfter:
+        - buildah
 apiVersion: tekton.dev/v1beta1
 kind: Pipeline
 metadata:

@@ -4,12 +4,12 @@ metadata:
   name: deploy
 spec:
   params:
-    - name: IMAGE
+    - name: app-name
       type: string
-    - name: NAMESPACE
+    - name: build-image
       type: string
   steps:
     - name: deploy
-      image: bitnami/kubectl:latest
+      image: quay.io/openshift/origin-cli:latest
       script: |
-        kubectl set image deployment/counter-deployment counter-container=$(params.IMAGE) -n $(params.NAMESPACE)
+        oc create deployment $(params.app-name) --image=$(params.build-image) --dry-run=client -o yaml | oc apply -f -

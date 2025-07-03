@@ -1,0 +1,22 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: counter-cd-pipeline
+spec:
+  workspaces:
+    - name: source
+  tasks:
+    - name: cleanup
+      taskRef:
+        name: cleanup
+      workspaces:
+        - name: source
+          workspace: source
+    - name: test
+      taskRef:
+        name: nose
+      workspaces:
+        - name: source
+          workspace: source
+      runAfter:
+        - cleanup
