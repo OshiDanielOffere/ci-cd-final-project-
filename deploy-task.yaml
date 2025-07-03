@@ -1,0 +1,15 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: deploy
+spec:
+  params:
+    - name: IMAGE
+      type: string
+    - name: NAMESPACE
+      type: string
+  steps:
+    - name: deploy
+      image: bitnami/kubectl:latest
+      script: |
+        kubectl set image deployment/counter-deployment counter-container=$(params.IMAGE) -n $(params.NAMESPACE)

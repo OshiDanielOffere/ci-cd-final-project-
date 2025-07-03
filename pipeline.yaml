@@ -1,0 +1,37 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: counter-api-pipeline
+spec:
+  params:
+    - name: IMAGE
+      type: string
+    - name: NAMESPACE
+      type: string
+  tasks:
+    - name: lint
+      taskRef:
+        name: lint
+    - name: test
+      taskRef:
+        name: test
+      runAfter:
+        - lint
+    - name: build-image
+      taskRef:
+        name: build-image
+      params:
+        - name: IMAGE
+          value: $(params.IMAGE)
+      runAfter:
+        - test
+    - name: deploy
+      taskRef:
+        name: deploy
+      params:
+        - name: IMAGE
+          value: $(params.IMAGE)
+        - name: NAMESPACE
+          value: $(params.NAMESPACE)
+      runAfter:
+        - build-image
